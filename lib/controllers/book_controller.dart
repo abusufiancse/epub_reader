@@ -8,6 +8,7 @@ import '../utils/network_caller.dart';
 
 class BookController extends GetxController {
   final RxList<BookModel> books = <BookModel>[].obs;
+  final Rx<BookModel?> selectedBook = Rx<BookModel?>(null); //product details
   final RxList<BookModel> featuredBooks = <BookModel>[].obs;
   final RxMap<String, List<BookModel>> booksByYear = <String, List<BookModel>>{}.obs;
   final RxBool isLoading = false.obs;
@@ -53,6 +54,34 @@ class BookController extends GetxController {
       isLoading.value = false;
     }
   }
+  Future<void> loadBookDetails(int bookId) async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      final response = await _networkCaller.getRequest(
+        url: '${AppConstants.baseUrl}${AppConstants.booksEndpoint}/$bookId',
+      );
+
+      if (response.isSuccess && response.responseData['success'] == true) {
+        selectedBook.value = BookModel.fromJson(response.responseData['book']);
+        _logger.i('Loaded book details for ID: $bookId');
+      } else {
+        errorMessage.value = 'Failed to load book details';
+        _logger.e('Book details loading failed: ${response.errorMess}');
+      }
+    } catch (e) {
+      errorMessage.value = 'Error loading book details';
+      _logger.e('Book details loading exception: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void clearSelectedBook() {
+    selectedBook.value = null;
+  }
+
 
   void _organizeBooksByYear() {
     booksByYear.clear();

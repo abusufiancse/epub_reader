@@ -15,6 +15,7 @@ class BookModel {
   final String? bookLink;
   final String year;
   final String month;
+  final String? sourceFile; // Add this
 
   BookModel({
     required this.bookId,
@@ -32,6 +33,7 @@ class BookModel {
     this.bookLink,
     required this.year,
     required this.month,
+    this.sourceFile, // Add this
   });
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
@@ -51,11 +53,14 @@ class BookModel {
       bookLink: json['book_link'],
       year: json['year'] ?? '',
       month: json['month'] ?? '',
+      sourceFile: json['source_file'], // Add this
     );
   }
 
   // Helper getters
   bool get hasDiscount => discount > 0;
+  bool get canRead => isPurchase || isFree;
+
   String get formattedPrice {
     if (isFree) return 'Free';
     return '৳$finalPrice';

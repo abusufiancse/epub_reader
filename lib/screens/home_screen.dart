@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/book_controller.dart';
 import '../models/book_model.dart';
+import '../routes/app_pages.dart';
 import '../widgets/book_card.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -174,11 +175,9 @@ class _HomeContent extends StatelessWidget {
               return BookCard(
                 book: book,
                 onTap: () {
-                  // TODO: Navigate to book details
-                  Get.snackbar(
-                    'Coming Soon',
-                    'Book reader will be available soon!',
-                    snackPosition: SnackPosition.BOTTOM,
+                  Get.toNamed(
+                    AppRoutes.bookDetail,
+                    arguments: book,
                   );
                 },
               );
@@ -225,11 +224,9 @@ class _HomeContent extends StatelessWidget {
               return BookCard(
                 book: book,
                 onTap: () {
-                  // TODO: Navigate to book details
-                  Get.snackbar(
-                    'Coming Soon',
-                    'Book reader will be available soon!',
-                    snackPosition: SnackPosition.BOTTOM,
+                  Get.toNamed(
+                    AppRoutes.bookDetail,
+                    arguments: book,
                   );
                 },
               );
