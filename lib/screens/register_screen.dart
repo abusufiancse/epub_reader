@@ -1,4 +1,4 @@
-// screens/login_screen.dart
+// screens/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
@@ -7,78 +7,51 @@ import '../routes/app_pages.dart';
 import '../utils/validators.dart';
 import '../widgets/custom_text_field.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final AuthController _authController = Get.find<AuthController>();
-  final TextEditingController _loginController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool _obscurePassword = true;
-  bool _rememberMe = false;
+  bool _obscureConfirmPassword = true;
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      final success = await _authController.login(
-        _loginController.text.trim(),
+      final success = await _authController.register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _phoneController.text.trim(),
         _passwordController.text.trim(),
+        _confirmPasswordController.text.trim(),
       );
 
       if (success) {
         _showSuccessSnackbar();
         Get.offAllNamed(AppRoutes.home);
-      } else {
-        _showErrorSnackbar();
       }
+      // Error handling is now done in the controller with proper messages
     }
   }
 
   void _showSuccessSnackbar() {
     Get.rawSnackbar(
-      message: 'Login successful!',
+      message: 'Registration successful!',
       backgroundColor: Colors.green,
       borderRadius: 8,
       margin: const EdgeInsets.all(16),
       snackPosition: SnackPosition.BOTTOM,
     );
-  }
-
-  void _showErrorSnackbar() {
-    Get.rawSnackbar(
-      message: 'Invalid credentials',
-      backgroundColor: Colors.red,
-      borderRadius: 8,
-      margin: const EdgeInsets.all(16),
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-
-  // Dynamic label and icon based on input
-  String get _loginFieldLabel {
-    final text = _loginController.text.trim();
-    if (text.isEmpty) return 'Email or Phone Number';
-    if (Validators.isPhone(text)) return 'Phone Number';
-    if (Validators.isEmail(text)) return 'Email Address';
-    return 'Email or Phone Number';
-  }
-
-  IconData get _loginFieldIcon {
-    final text = _loginController.text.trim();
-    if (text.isEmpty) return Icons.person_outline;
-    if (Validators.isPhone(text)) return Icons.phone_outlined;
-    return Icons.email_outlined;
-  }
-
-  TextInputType get _keyboardType {
-    final text = _loginController.text.trim();
-    if (Validators.isPhone(text)) return TextInputType.phone;
-    return TextInputType.emailAddress;
   }
 
   @override
@@ -105,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Title
               Text(
-                'Sign in to EPUB Reader',
+                'Create Account',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
@@ -116,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Subtitle
               Text(
-                'Welcome back! Please enter your details.',
+                'Join us and start your reading journey',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
@@ -124,8 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 40),
 
-              // Login Form
-              _buildLoginForm(context),
+              // Registration Form
+              _buildRegisterForm(context),
             ],
           ),
         ),
@@ -133,23 +106,48 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
+  Widget _buildRegisterForm(BuildContext context) {
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          // Dynamic Login Field (Email/Phone)
-          StatefulBuilder(
-            builder: (context, setState) {
-              return CustomTextField(
-                label: _loginFieldLabel,
-                controller: _loginController,
-                validator: Validators.validateLogin,
-                keyboardType: _keyboardType,
-                prefixIcon: _loginFieldIcon,
-                onChanged: (value) => setState(() {}),
-              );
+          // Name Field
+          CustomTextField(
+            label: 'Full Name',
+            controller: _nameController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your full name';
+              }
+              if (value.length < 2) {
+                return 'Name must be at least 2 characters';
+              }
+              return null;
             },
+            keyboardType: TextInputType.name,
+            prefixIcon: Icons.person_outline,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Email Field
+          CustomTextField(
+            label: 'Email Address',
+            controller: _emailController,
+            validator: Validators.validateEmail,
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: Icons.email_outlined,
+          ),
+
+          const SizedBox(height: 20),
+
+          // Phone Field
+          CustomTextField(
+            label: 'Phone Number',
+            controller: _phoneController,
+            validator: Validators.validatePhone,
+            keyboardType: TextInputType.phone,
+            prefixIcon: Icons.phone_outlined,
           ),
 
           const SizedBox(height: 20),
@@ -170,59 +168,54 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Remember Me & Forgot Password
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Remember Me
-              Row(
-                children: [
-                  Checkbox(
-                    value: _rememberMe,
-                    onChanged: (value) => setState(() => _rememberMe = value ?? false),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  Text(
-                    'Remember me',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                ],
+          // Confirm Password Field
+          CustomTextField(
+            label: 'Confirm Password',
+            controller: _confirmPasswordController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please confirm your password';
+              }
+              if (value != _passwordController.text) {
+                return 'Passwords do not match';
+              }
+              return null;
+            },
+            obscureText: _obscureConfirmPassword,
+            prefixIcon: Icons.lock_outline,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey.shade500,
               ),
-
-              // Forgot Password
-              TextButton(
-                onPressed: () {
-                  Get.rawSnackbar(
-                    message: 'Password reset feature coming soon',
-                    backgroundColor: AppColors.primary,
-                    borderRadius: 8,
-                    margin: const EdgeInsets.all(16),
-                  );
-                },
-                child: Text(
-                  'Forgot Password?',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
-          // Sign In Button
+          // Password hint
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'Password must be at least 8 characters long',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Register Button
           Obx(() => SizedBox(
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: _authController.isLoading.value ? null : _login,
+              onPressed: _authController.isLoading.value ? null : _register,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -241,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               )
                   : Text(
-                'Sign In',
+                'Create Account',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -252,21 +245,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(height: 32),
 
-          // Sign Up Section
+          // Login Section
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Don't have an account?",
+                "Already have an account?",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () => Get.toNamed(AppRoutes.register),
+                onTap: () => Get.offAllNamed(AppRoutes.login),
                 child: Text(
-                  'Sign Up',
+                  'Sign In',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,

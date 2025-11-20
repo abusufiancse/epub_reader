@@ -1,4 +1,5 @@
 // controllers/auth_controller.dart
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
@@ -44,7 +45,7 @@ class AuthController extends GetxController {
       isLoading.value = true;
 
       final response = await _networkCaller.postRequest(
-        url: '${AppConstants.baseUrl}login',
+        url: '${AppConstants.baseUrl}${AppConstants.loginEndpoint}',
         body: {
           'login': login,
           'password': password,
@@ -58,11 +59,72 @@ class AuthController extends GetxController {
         return true;
       } else {
         _logger.e('Login failed: ${response.errorMess}');
-        // Don't show error to user, just log it
         return false;
       }
     } catch (e) {
       _logger.e('Login exception: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Add register method
+  // In the register method of auth_controller.dart
+  Future<bool> register(String name, String email, String phone, String password, String passwordConfirmation) async {
+    try {
+      isLoading.value = true;
+
+      final response = await _networkCaller.postRequest(
+        url: '${AppConstants.baseUrl}${AppConstants.registerEndpoint}',
+        body: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        },
+        includeToken: false,
+      );
+
+      if (response.isSuccess && response.responseData['success'] == true) {
+        await _storeAuthData(response.responseData);
+        _logger.i('Registration successful for: $email');
+        return true;
+      } else {
+        // Extract error message from backend response
+        String errorMessage = 'Registration failed';
+        if (response.responseData != null) {
+          errorMessage = response.responseData['error'] ??
+              response.responseData['message'] ??
+              response.errorMess;
+        }
+
+        _logger.e('Registration failed: $errorMessage');
+
+        // Show user-friendly error message
+        Get.rawSnackbar(
+          message: errorMessage,
+          backgroundColor: Colors.red,
+          borderRadius: 8,
+          margin: const EdgeInsets.all(16),
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+
+        return false;
+      }
+    } catch (e) {
+      _logger.e('Registration exception: $e');
+
+      Get.rawSnackbar(
+        message: 'Network error. Please try again.',
+        backgroundColor: Colors.red,
+        borderRadius: 8,
+        margin: const EdgeInsets.all(16),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
       return false;
     } finally {
       isLoading.value = false;

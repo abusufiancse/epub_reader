@@ -18,12 +18,36 @@ class Validators {
     return 'Please enter a valid phone number (01XXXXXXXXX) or email address';
   }
 
+  static String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email address';
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+      return 'Please enter a valid email address';
+    }
+
+    return null;
+  }
+
+  static String? validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your phone number';
+    }
+
+    if (!RegExp(r'^01[3-9]\d{8}$').hasMatch(value)) {
+      return 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX)';
+    }
+
+    return null;
+  }
+
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (value.length < 8) { // Changed from 6 to 8
+      return 'Password must be at least 8 characters';
     }
     return null;
   }
