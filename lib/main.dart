@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/auth_controller.dart';
+import 'controllers/book_controller.dart';
 import 'core/themes/app_theme.dart';
 import 'routes/app_pages.dart';
 
@@ -21,9 +22,10 @@ Future<void> initializeDependencies() async {
   // Initialize SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   Get.put<SharedPreferences>(prefs, permanent: true);
-
   // Initialize AuthController
   Get.put<AuthController>(AuthController(), permanent: true);
+  // Initialize BookController
+  Get.put<BookController>(BookController(), permanent: true);
 }
 
 class MyApp extends StatelessWidget {
