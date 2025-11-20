@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/auth_controller.dart';
@@ -19,11 +20,16 @@ void main() async {
 }
 
 Future<void> initializeDependencies() async {
+  // Initialize GetStorage
+  await GetStorage.init();
+
   // Initialize SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   Get.put<SharedPreferences>(prefs, permanent: true);
+
   // Initialize AuthController
   Get.put<AuthController>(AuthController(), permanent: true);
+
   // Initialize BookController
   Get.put<BookController>(BookController(), permanent: true);
 }
@@ -42,7 +48,7 @@ class MyApp extends StatelessWidget {
           title: 'EPUB Reader',
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system, // Use system theme initially
+          themeMode: ThemeMode.system,
           initialRoute: AppRoutes.splash,
           getPages: AppPages.routes,
           debugShowCheckedModeBanner: false,

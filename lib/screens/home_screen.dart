@@ -7,11 +7,21 @@ import '../models/book_model.dart';
 import '../routes/app_pages.dart';
 import '../widgets/book_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends GetView<BookController> {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+
+    // Authentication check
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!authController.isAuthenticated) {
+        Get.offAllNamed(AppRoutes.login);
+        return;
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -33,18 +43,9 @@ class HomeScreen extends StatelessWidget {
           PopupMenuButton(
             icon: const Icon(Icons.more_vert, color: Colors.grey),
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Text('Profile'),
-              ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Text('Settings'),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
+              const PopupMenuItem(value: 'profile', child: Text('Profile')),
+              const PopupMenuItem(value: 'settings', child: Text('Settings')),
+              const PopupMenuItem(value: 'logout', child: Text('Logout')),
             ],
             onSelected: (value) {
               if (value == 'logout') {
@@ -64,19 +65,13 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Logout'),
         content: const Text('Are you sure you want to logout?'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Get.back();
               Get.find<AuthController>().logout();
             },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -84,19 +79,16 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends GetView<BookController> {
   const _HomeContent();
 
   @override
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
-    final BookController bookController = Get.find<BookController>();
 
     return Obx(() {
-      if (bookController.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
       }
 
       return SingleChildScrollView(
@@ -109,11 +101,11 @@ class _HomeContent extends StatelessWidget {
             const SizedBox(height: 32),
 
             // Featured Books Section
-            if (bookController.featuredBooks.isNotEmpty)
-              _buildFeaturedBooksSection(bookController.featuredBooks),
+            if (controller.featuredBooks.isNotEmpty)
+              _buildFeaturedBooksSection(controller.featuredBooks),
 
             // Books by Year Sections
-            _buildBooksByYearSections(bookController),
+            _buildBooksByYearSections(controller),
           ],
         ),
       );
@@ -126,10 +118,7 @@ class _HomeContent extends StatelessWidget {
       children: [
         Text(
           'Welcome back,',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 4),
         Text(
@@ -143,10 +132,7 @@ class _HomeContent extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Discover your next favorite book',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -175,10 +161,7 @@ class _HomeContent extends StatelessWidget {
               return BookCard(
                 book: book,
                 onTap: () {
-                  Get.toNamed(
-                    AppRoutes.bookDetail,
-                    arguments: book,
-                  );
+                  Get.toNamed(AppRoutes.bookDetail, arguments: book);
                 },
               );
             },
@@ -224,10 +207,7 @@ class _HomeContent extends StatelessWidget {
               return BookCard(
                 book: book,
                 onTap: () {
-                  Get.toNamed(
-                    AppRoutes.bookDetail,
-                    arguments: book,
-                  );
+                  Get.toNamed(AppRoutes.bookDetail, arguments: book);
                 },
               );
             },

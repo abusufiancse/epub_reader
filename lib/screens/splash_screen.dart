@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../core/constants/app_colors.dart';
+import '../routes/app_pages.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,52 +13,93 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final AuthController _authController = Get.put(AuthController());
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   void initState() {
     super.initState();
-    _checkAuthentication();
+    _checkAuthenticationAndNavigate();
   }
 
-  Future<void> _checkAuthentication() async {
-    await Future.delayed(const Duration(seconds: 2)); // Splash delay
+  Future<void> _checkAuthenticationAndNavigate() async {
+    // Add a minimum splash screen duration for better UX
+    await Future.delayed(const Duration(milliseconds: 1500));
 
-    if (_authController.isLoggedIn.value) {
-      Get.offAllNamed('/home');
+    // Check if user is authenticated (has valid token)
+    if (_authController.isAuthenticated) {
+      _authController.isLoggedIn.value = true;
+      Get.offAllNamed(AppRoutes.home);
     } else {
-      Get.offAllNamed('/login');
+      _authController.isLoggedIn.value = false;
+      Get.offAllNamed(AppRoutes.login);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // App Logo
-            Icon(
-              Icons.menu_book_rounded,
-              size: 80,
-              color: Colors.white,
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.menu_book_rounded,
+                size: 50,
+                color: AppColors.primary,
+              ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 24),
+
             // App Name
-            Text(
+            const Text(
               'EPUB Reader',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 8),
+
+            // Tagline
+            const Text(
+              'Your Digital Library',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 32),
+
             // Loading indicator
-            CircularProgressIndicator(
+            const CircularProgressIndicator(
               color: Colors.white,
+            ),
+            const SizedBox(height: 16),
+
+            // Loading text
+            const Text(
+              'Loading...',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
             ),
           ],
         ),
