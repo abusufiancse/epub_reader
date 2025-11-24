@@ -1,9 +1,14 @@
 // controllers/book_controller.dart
+import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 import '../core/constants/app_constants.dart';
 import '../models/book_model.dart';
+import '../utils/file_downloader.dart';
+import '../utils/file_downloader_simple.dart';
 import '../utils/network_caller.dart';
 
 class BookController extends GetxController {
@@ -14,7 +19,14 @@ class BookController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  // Add download states
+  final RxMap<String, bool> downloadingBooks = <String, bool>{}.obs;
+  final RxMap<String, double> downloadProgress = <String, double>{}.obs;
+  final RxMap<String, bool> downloadedBooks = <String, bool>{}.obs;
+
   final NetworkCaller _networkCaller = NetworkCaller();
+  // final FileDownloader _fileDownloader = FileDownloader();
+  final SimpleFileDownloader _fileDownloader = SimpleFileDownloader(); // Use simple
   final Logger _logger = Logger();
 
   @override
@@ -22,7 +34,107 @@ class BookController extends GetxController {
     super.onInit();
     loadBooks();
   }
+  // Download book method
+  // In BookController - update the downloadBook method
+  // In book_controller.dart - update the downloadBook method
+// In book_controller.dart - update downloadBook method
+  // In BookController - update downloadBook method
+  Future<void> downloadBook(BookModel book) async {
+    try {
+      final downloadUrl = book.sourceFile ?? book.bookLink;
 
+      if (downloadUrl == null || downloadUrl.isEmpty) {
+        throw Exception('No download source available for this book');
+      }
+
+      downloadingBooks[book.bookCode] = true;
+      downloadProgress[book.bookCode] = 0.0;
+
+      _logger.i('🚀 Starting download for: ${book.bookCode}');
+
+      final filePath = await _fileDownloader.downloadBook(
+        url: downloadUrl,
+        bookCode: book.bookCode,
+        onProgress: (received, total) {
+          downloadProgress[book.bookCode] = received / total;
+        },
+      );
+
+      _logger.i('📁 Download returned file path: $filePath');
+
+      if (filePath == null) {
+        throw Exception('Download failed - no file path returned');
+      }
+
+      // Verify the file exists and is accessible
+      final file = File(filePath);
+      final exists = await file.exists();
+      final fileSize = exists ? await file.length() : 0;
+
+      _logger.i('🔍 Post-download verification:');
+      _logger.i('   📁 File exists: $exists');
+      _logger.i('   📏 File size: $fileSize bytes');
+
+      if (!exists || fileSize == 0) {
+        throw Exception('Downloaded file is missing or empty');
+      }
+
+      // SUCCESS - Update UI state
+      _logger.i('🎉 DOWNLOAD COMPLETED SUCCESSFULLY for: ${book.bookCode}');
+
+      downloadingBooks[book.bookCode] = false;
+      downloadedBooks[book.bookCode] = true; // This will trigger UI update
+
+      // Show success message to user
+      Get.snackbar(
+        'Download Complete',
+        'Book "${book.title}" downloaded successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+
+    } catch (e) {
+      _logger.e('💥 Download failed for ${book.bookCode}: $e');
+      downloadingBooks[book.bookCode] = false;
+      downloadProgress[book.bookCode] = 0.0;
+
+      throw e;
+    }
+  }
+
+  // Check if book is downloaded
+  Future<bool> isBookDownloaded(String bookCode) async {
+    if (downloadedBooks[bookCode] == true) {
+      return true;
+    }
+
+    final isDownloaded = await _fileDownloader.isBookDownloaded(bookCode);
+    downloadedBooks[bookCode] = isDownloaded;
+    return isDownloaded;
+  }
+
+  // Get downloaded book path
+  Future<String?> getDownloadedBookPath(String bookCode) async {
+    return await _fileDownloader.getDownloadedBookPath(bookCode);
+  }
+
+  // Check download state for a book
+  bool isDownloading(String bookCode) {
+    return downloadingBooks[bookCode] == true;
+  }
+
+  double getDownloadProgress(String bookCode) {
+    return downloadProgress[bookCode] ?? 0.0;
+  }
+
+  bool isDownloaded(String bookCode) {
+    return downloadedBooks[bookCode] == true;
+  }
+
+
+  //others
   Future<void> loadBooks() async {
     try {
       isLoading.value = true;
