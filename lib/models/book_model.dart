@@ -37,6 +37,10 @@ class BookModel {
   });
 
   factory BookModel.fromJson(Map<String, dynamic> json) {
+    // String removeLocalhost(String? url) {
+    //   if (url == null) return '';
+    //   return url.replaceAll('http://127.0.0.1:8000/', '');
+    // }
     return BookModel(
       bookId: json['book_id'] ?? 0,
       bookCode: json['book_code'] ?? '',
@@ -54,6 +58,7 @@ class BookModel {
       year: json['year'] ?? '',
       month: json['month'] ?? '',
       sourceFile: json['source_file'], // Add this
+      // sourceFile: removeLocalhost(json['source_file']),
     );
   }
 

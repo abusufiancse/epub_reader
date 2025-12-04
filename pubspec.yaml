@@ -20,14 +20,15 @@ dependencies:
   logger: ^2.6.2
   get_storage: ^2.1.1
 
-#later
-#  vocsy_epub_viewer: ^3.0.0
-#  page_flip: ^0.2.5+1
+  dio: ^5.4.0
   cached_network_image: ^3.4.1
-#  path_provider: ^2.1.5
-#  path: ^1.9.1
-#  file_picker: ^10.3.6
-#  permission_handler: ^12.0.1
+  path_provider: ^2.1.5
+  permission_handler: ^12.0.1
+  mr_epub: ^0.0.4
+  crypto: ^3.0.2
+  archive: ^4.0.7
+  # html package used only for fallback/decoding if needed
+  html: ^0.15.6
 
 dev_dependencies:
   flutter_test:
