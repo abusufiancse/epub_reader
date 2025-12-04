@@ -28,6 +28,8 @@ class AuthController extends GetxController {
     final token = _storage.read('token');
     final userData = _storage.read('user');
 
+    _logger.i('Checking authentication status - Token: ${token != null ? "Exists" : "Null"}, User: ${userData != null ? "Exists" : "Null"}');
+
     if (token != null && userData != null) {
       try {
         user.value = UserModel.fromJson(userData);
@@ -37,7 +39,17 @@ class AuthController extends GetxController {
         _logger.e('Error restoring user data: $e');
         _clearAuthData();
       }
+    } else {
+      _logger.i('No authentication data found');
+      isLoggedIn.value = false;
     }
+  }
+
+  // Check if user is authenticated (has valid token)
+  bool get isAuthenticated {
+    final token = _storage.read('token');
+    final userData = _storage.read('user');
+    return token != null && userData != null;
   }
 
   Future<bool> login(String login, String password) async {
@@ -69,8 +81,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // Add register method
-  // In the register method of auth_controller.dart
   Future<bool> register(String name, String email, String phone, String password, String passwordConfirmation) async {
     try {
       isLoading.value = true;
@@ -137,6 +147,8 @@ class AuthController extends GetxController {
 
     user.value = UserModel.fromJson(responseData['user']);
     isLoggedIn.value = true;
+
+    _logger.i('Auth data stored successfully - Token: ${responseData['token'] != null ? "Exists" : "Null"}');
   }
 
   Future<void> logout() async {
@@ -150,6 +162,7 @@ class AuthController extends GetxController {
     _storage.remove('user');
     user.value = null;
     isLoggedIn.value = false;
+    _logger.i('Auth data cleared');
   }
 
   String? get token => _storage.read('token');
